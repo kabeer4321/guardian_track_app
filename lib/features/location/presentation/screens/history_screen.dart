@@ -14,7 +14,18 @@ class HistoryScreen extends StatelessWidget {
     context.read<LocationBloc>().add(LoadLocations());
 
     return Scaffold(
-      appBar: AppBar(title: const Text("History")),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text(" History",
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: 25
+          ),),
+        backgroundColor: Colors.blue,
+        leading: IconButton(onPressed: (){
+          Navigator.pop(context);
+        }, icon: Icon(Icons.arrow_back,color: Colors.white,)),
+      ),
       body: BlocBuilder<LocationBloc, LocationState>(
         builder: (context, state) {
 
@@ -29,19 +40,36 @@ class HistoryScreen extends StatelessWidget {
             return ListView.builder(
               itemCount: state.locations.length,
               itemBuilder: (context, index) {
-
                 final loc = state.locations[index];
-
-                return Card(
-                  margin: const EdgeInsets.all(8),
-                  child: ListTile(
-                    title: Text(
-                      "Lat: ${loc.lat}, Lng: ${loc.lng}",
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.grey.shade300,
+                      width: 1,
                     ),
-                    subtitle: Text(
-                      "${DateFormatter.formatDate(loc.time)} "
-                          "${DateFormatter.formatTime(loc.time)}",
-                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildRow("Latitude", loc.lat.toString()),
+                      const SizedBox(height: 6),
+                      _buildRow("Longitude", loc.lng.toString()),
+                      const SizedBox(height: 6),
+                      _buildRow("Date", DateFormatter.formatDate(loc.time)),
+                      const SizedBox(height: 6),
+                      _buildRow("Time", DateFormatter.formatTime(loc.time)),
+                    ],
                   ),
                 );
               },
@@ -53,6 +81,28 @@ class HistoryScreen extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+  Widget _buildRow(String title, String value) {
+    return Row(
+      children: [
+        Text(
+          "$title: ",
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

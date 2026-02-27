@@ -60,7 +60,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Live Tracking")),
+      appBar: AppBar(
+          title: const Text(" Guardian Route App ",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 25
+          ),),
+      backgroundColor: Colors.blue,
+      ),
         body: BlocConsumer<LocationBloc, LocationState>(
           listener: (context, state) {
             if (state is LocationLoaded && state.message != null) {
@@ -71,9 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           builder: (context, state) {
             if (state is LocationLoaded) {
-
               final locations = state.locations;
-
               LatLng center = locations.isNotEmpty
                   ? LatLng(locations.last.lat, locations.last.lng)
                   : const LatLng(20.5937, 78.9629);
@@ -86,66 +91,109 @@ class _HomeScreenState extends State<HomeScreen> {
                     markers: buildMarkers(locations),
                     myLocationEnabled: true,
                   ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Row(
-                      mainAxisAlignment:
-                      MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: state.isTracking
-                              ? null
-                              : () async {
+                  Padding(
+                    padding: EdgeInsetsGeometry.only(right: 40, bottom: 100),
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (!state.isTracking)
+                          InkWell(
+                            onTap: () async {
 
-                            bool granted =
-                            await _permissionService.checkPermissions();
+                              bool granted =
+                              await _permissionService.checkPermissions();
 
-                            if (!granted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Permission required"),
+                              if (!granted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Permission required"),
+                                  ),
+                                );
+                                return;
+                              }
+                              context.read<LocationBloc>().add(StartTracking());
+                            },
+                            child: Container(
+                              height: 40,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(12)
+                              ),
+                                child:
+                                Center(
+                                  child: const Text("Start Tracking",style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 25
+                                  ),),
+                                ),
+                            ),
+                          ),
+                          SizedBox(height: 5,),
+                          if (state.isTracking)
+                          InkWell(
+                            onTap: !state.isTracking
+                                ? null
+                                : () {
+                              context
+                                  .read<LocationBloc>()
+                                  .add(StopTracking());
+                            },
+                            child: Container(
+                              height: 40,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(12)
+                              ),
+                              child:
+                              Center(
+                                child: const Text("Stop Tracking",style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 25
+                                ),),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 5,),
+                          InkWell(
+                            onTap:(){
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const HistoryScreen(),
                                 ),
                               );
-                              return;
-                            }
-
-                            context
-                                .read<LocationBloc>()
-                                .add(StartTracking());
-                          },
-                          child: const Text("Start"),
-                        ),
-                        ElevatedButton(
-                          onPressed: !state.isTracking
-                              ? null
-                              : () {
-                            context
-                                .read<LocationBloc>()
-                                .add(StopTracking());
-                          },
-                          child: const Text("Stop"),
-                        ),
-                      ],
+                            },
+                            child: Container(
+                              height: 40,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(12)
+                              ),
+                              child:
+                              Center(
+                                child: const Text("History",style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 25
+                                ),),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 5,),
+                        ],
+                      ),
                     ),
                   )
                 ],
               );
             }
-
             return const Center(child: CircularProgressIndicator());
           },
         ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.history),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const HistoryScreen(),
-            ),
-          );
-        },
-      ),
     );
   }
 }
