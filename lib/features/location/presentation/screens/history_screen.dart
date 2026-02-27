@@ -39,15 +39,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _openSessionRoute(
       List<LocationEntity> sessionLocations) async {
 
-    if (sessionLocations.isEmpty) return;
+    if (sessionLocations.length < 2) return;
 
     final start = sessionLocations.first;
     final end = sessionLocations.last;
+
+    // Middle points as waypoints
+    final waypoints = sessionLocations
+        .sublist(1, sessionLocations.length - 1)
+        .map((e) => "${e.lat},${e.lng}")
+        .join("|");
 
     final uri = Uri.parse(
       "https://www.google.com/maps/dir/?api=1"
           "&origin=${start.lat},${start.lng}"
           "&destination=${end.lat},${end.lng}"
+          "&waypoints=$waypoints"
           "&travelmode=driving",
     );
 
