@@ -6,7 +6,6 @@ import 'package:geolocator/geolocator.dart';
 
 import '../../features/location/data/datasource/location_local_datasource.dart';
 import '../../features/location/data/models/location_model.dart';
-import '../utils/date_formatter.dart';
 
 Future<void> initializeBackgroundService() async {
   final service = FlutterBackgroundService();
@@ -52,55 +51,53 @@ void onStart(ServiceInstance service) async {
 
   final dataSource = LocationLocalDataSource();
 
+  String? sessionId;
+  Timer? timer;
+
   if (service is AndroidServiceInstance) {
     service.setAsForegroundService();
-
-    service.setForegroundNotificationInfo(
-      title: "Location Tracking",
-      content: "Starting tracking...",
-    );
   }
 
-  service.on('stopService').listen((event) {
-    service.stopSelf();
+  service.on("setSession").listen((event) {
+
+    sessionId = event?["sessionId"];
+
+    if (sessionId == null) return;
+
+    Future<void> saveLocation() async {
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+
+        final now = DateTime.now();
+
+        await dataSource.save(
+          LocationModel(
+            lat: position.latitude,
+            lng: position.longitude,
+            time: now,
+            sessionId: sessionId!,
+          ),
+        );
+
+        service.invoke("update");
+
+      } catch (e) {
+        print("Location error: $e");
+      }
+    }
+
+    saveLocation();
+
+    timer = Timer.periodic(
+      const Duration(seconds: 10),
+          (_) => saveLocation(),
+    );
   });
 
-  Future<void> saveLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      final now = DateTime.now();
-
-      await dataSource.save(
-        LocationModel(
-          lat: position.latitude,
-          lng: position.longitude,
-          time: now,
-        ),
-      );
-
-      if (service is AndroidServiceInstance) {
-        service.setForegroundNotificationInfo(
-          title: "Location Tracking",
-          content:
-          "Updated on ${DateFormatter.formatDate(now)} "
-              "at ${DateFormatter.formatTime(now)}",
-        );
-      }
-
-      service.invoke("update");
-
-    } catch (e) {
-      print("Location error: $e");
-    }
-  }
-
-  saveLocation();
-
-  Timer.periodic(
-    const Duration(minutes: 1),
-        (_) => saveLocation(),
-  );
+  service.on('stopService').listen((event) {
+    timer?.cancel();
+    service.stopSelf();
+  });
 }

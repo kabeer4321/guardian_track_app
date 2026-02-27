@@ -2,16 +2,18 @@ import '../../domain/entities/location_entity.dart';
 
 class LocationModel extends LocationEntity {
   LocationModel({
-    required double lat,
-    required double lng,
-    required DateTime time,
-  }) : super(lat: lat, lng: lng, time: time);
+    required super.lat,
+    required super.lng,
+    required super.time,
+    required super.sessionId,
+  });
 
   Map<String, dynamic> toMap() {
     return {
       'lat': lat,
       'lng': lng,
       'time': time.toIso8601String(),
+      'sessionId': sessionId,
     };
   }
 
@@ -20,6 +22,7 @@ class LocationModel extends LocationEntity {
       lat: map['lat'],
       lng: map['lng'],
       time: DateTime.parse(map['time']),
+      sessionId: map['sessionId'],
     );
   }
 }

@@ -11,6 +11,8 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   final SaveLocation saveLocation;
   final PermissionService permissionService;
 
+  String? currentSessionId;
+
   LocationBloc(
       this.getLocations,
       this.saveLocation,
@@ -21,11 +23,11 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     on<StopTracking>(_stop);
     on<ServiceUpdated>(_load);
   }
+
   Future<void> _load(
       LocationEvent event, Emitter<LocationState> emit) async {
 
     final data = await getLocations();
-
     final running = await FlutterBackgroundService().isRunning();
 
     emit(LocationLoaded(
@@ -38,16 +40,17 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       StartTracking event, Emitter<LocationState> emit) async {
 
     final running = await FlutterBackgroundService().isRunning();
+    if (running) return;
 
-    if (running) {
-      final data = await getLocations();
-      emit(LocationLoaded(
-        locations: data,
-        isTracking: true,
-        message: "Tracking already started",
-      ));
-      return;
-    }
+    currentSessionId =
+        DateTime.now().millisecondsSinceEpoch.toString();
+
+    await FlutterBackgroundService().startService();
+
+    FlutterBackgroundService().invoke(
+      "setSession",
+      {"sessionId": currentSessionId},
+    );
 
     final data = await getLocations();
 
@@ -55,8 +58,6 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       locations: data,
       isTracking: true,
     ));
-
-    FlutterBackgroundService().startService();
   }
 
   Future<void> _stop(

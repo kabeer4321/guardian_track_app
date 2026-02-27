@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:guardian_tracking/features/location/presentation/screens/history_screen.dart';
 import '../../../../core/services/permission_service.dart';
-import '../../domain/entities/location_entity.dart';
 import '../bloc/location_bloc.dart';
 import '../bloc/location_event.dart';
 import '../bloc/location_state.dart';
@@ -44,19 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Set<Marker> buildMarkers(List<LocationEntity> locations) {
-    return locations.map((loc) {
-      return Marker(
-        markerId: MarkerId(loc.time.toString()),
-        position: LatLng(loc.lat, loc.lng),
-        infoWindow: InfoWindow(
-          title: "Tracked Location",
-          snippet: loc.time.toString(),
-        ),
-      );
-    }).toSet();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,7 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   GoogleMap(
                     initialCameraPosition:
                     CameraPosition(target: center, zoom: 15),
-                    markers: buildMarkers(locations),
                     myLocationEnabled: true,
                   ),
                   Padding(
@@ -101,7 +86,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (!state.isTracking)
                           InkWell(
                             onTap: () async {
-
                               bool granted =
                               await _permissionService.checkPermissions();
 
@@ -134,9 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           SizedBox(height: 5,),
                           if (state.isTracking)
                           InkWell(
-                            onTap: !state.isTracking
-                                ? null
-                                : () {
+                            onTap: () {
                               context
                                   .read<LocationBloc>()
                                   .add(StopTracking());

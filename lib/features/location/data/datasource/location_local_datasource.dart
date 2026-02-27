@@ -19,7 +19,8 @@ class LocationLocalDataSource {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             lat REAL,
             lng REAL,
-            time TEXT
+            time TEXT,
+            sessionId TEXT
           )
         ''');
       },
@@ -36,7 +37,6 @@ class LocationLocalDataSource {
   Future<List<LocationModel>> getAll() async {
     final db = await database;
     final result = await db.query('locations', orderBy: 'id ASC');
-
     return result.map((e) => LocationModel.fromMap(e)).toList();
   }
 }

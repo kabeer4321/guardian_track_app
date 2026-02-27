@@ -4,6 +4,7 @@ import '../../../../core/utils/date_formatter.dart';
 import '../bloc/location_bloc.dart';
 import '../bloc/location_event.dart';
 import '../bloc/location_state.dart';
+import '../../domain/entities/location_entity.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
@@ -18,13 +19,14 @@ class HistoryScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(" History",
           style: TextStyle(
-              color: Colors.white,
-              fontSize: 25
-          ),),
+            color: Colors.white, fontSize: 25,),),
         backgroundColor: Colors.blue,
-        leading: IconButton(onPressed: (){
-          Navigator.pop(context);
-        }, icon: Icon(Icons.arrow_back,color: Colors.white,)),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+        ),
       ),
       body: BlocBuilder<LocationBloc, LocationState>(
         builder: (context, state) {
@@ -37,10 +39,25 @@ class HistoryScreen extends StatelessWidget {
               );
             }
 
+            /// 🔹 GROUP BY SESSION
+            final grouped = <String, List<LocationEntity>>{};
+
+            for (var loc in state.locations) {
+              grouped.putIfAbsent(loc.sessionId, () => []);
+              grouped[loc.sessionId]!.add(loc);
+            }
+
+            final sessions = grouped.entries.toList();
+
             return ListView.builder(
-              itemCount: state.locations.length,
+              itemCount: sessions.length,
               itemBuilder: (context, index) {
-                final loc = state.locations[index];
+
+                final sessionLocations = sessions[index].value;
+
+                final start = sessionLocations.first.time;
+                final end = sessionLocations.last.time;
+
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   padding: const EdgeInsets.all(16),
@@ -62,13 +79,55 @@ class HistoryScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildRow("Latitude", loc.lat.toString()),
+
+                      /// 🔹 SESSION HEADER
+                      _buildRow(
+                        "Session Date",
+                        DateFormatter.formatDate(start),
+                      ),
                       const SizedBox(height: 6),
-                      _buildRow("Longitude", loc.lng.toString()),
+
+                      _buildRow(
+                        "Started",
+                        DateFormatter.formatTime(start),
+                      ),
                       const SizedBox(height: 6),
-                      _buildRow("Date", DateFormatter.formatDate(loc.time)),
-                      const SizedBox(height: 6),
-                      _buildRow("Time", DateFormatter.formatTime(loc.time)),
+
+                      _buildRow(
+                        "Stopped",
+                        DateFormatter.formatTime(end),
+                      ),
+
+                      const Divider(height: 20),
+
+                      /// 🔹 LOCATIONS INSIDE SESSION
+                      ListView.builder(
+                        itemCount: sessionLocations.length,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemBuilder: (context, i) {
+
+                          final loc = sessionLocations[i];
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildRow(
+                                  "Latitude",
+                                  loc.lat.toString()),
+                              const SizedBox(height: 4),
+                              _buildRow(
+                                  "Longitude",
+                                  loc.lng.toString()),
+                              const SizedBox(height: 4),
+                              _buildRow(
+                                  "Time",
+                                  DateFormatter.formatTime(loc.time)),
+                              const Divider(height: 20),
+                            ],
+                          );
+                        },
+                      ),
                     ],
                   ),
                 );
@@ -83,6 +142,7 @@ class HistoryScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildRow(String title, String value) {
     return Row(
       children: [
