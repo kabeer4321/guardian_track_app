@@ -65,9 +65,18 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, state) {
             if (state is LocationLoaded) {
               final locations = state.locations;
-              LatLng center = locations.isNotEmpty
-                  ? LatLng(locations.last.lat, locations.last.lng)
-                  : const LatLng(20.5937, 78.9629);
+              LatLng center = const LatLng(20.5937, 78.9629);
+
+              if (locations.isNotEmpty) {
+                final last = locations.last;
+
+                final lat = double.tryParse(last.lat);
+                final lng = double.tryParse(last.lng);
+
+                if (lat != null && lng != null) {
+                  center = LatLng(lat, lng);
+                }
+              }
 
               return Stack(
                 children: [

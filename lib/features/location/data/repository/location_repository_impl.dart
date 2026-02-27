@@ -16,6 +16,7 @@ class LocationRepositoryImpl implements LocationRepository {
         lng: location.lng,
         time: location.time,
         sessionId: location.sessionId,
+        status: location.status
       ),
     );
   }

@@ -65,26 +65,54 @@ void onStart(ServiceInstance service) async {
     if (sessionId == null) return;
 
     Future<void> saveLocation() async {
+      final now = DateTime.now();
+
       try {
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+        if (!serviceEnabled) {
+          await dataSource.save(
+            LocationModel(
+              lat: "Not Available",
+              lng: "Not Available",
+              time: now,
+              sessionId: sessionId!,
+              status: "Location Service Disabled",
+            ),
+          );
+
+          service.invoke("update");
+          return;
+        }
+
         Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
 
-        final now = DateTime.now();
-
         await dataSource.save(
           LocationModel(
-            lat: position.latitude,
-            lng: position.longitude,
+            lat: position.latitude.toString(),
+            lng: position.longitude.toString(),
             time: now,
             sessionId: sessionId!,
+            status: "Location Captured",
           ),
         );
 
         service.invoke("update");
 
       } catch (e) {
-        print("Location error: $e");
+        await dataSource.save(
+          LocationModel(
+            lat: "Not Available",
+            lng: "Not Available",
+            time: now,
+            sessionId: sessionId!,
+            status: "Location Error",
+          ),
+        );
+
+        service.invoke("update");
       }
     }
 

@@ -17,10 +17,11 @@ class LocationLocalDataSource {
         await db.execute('''
           CREATE TABLE locations(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            lat REAL,
-            lng REAL,
+            lat TEXT,
+            lng TEXT,
             time TEXT,
-            sessionId TEXT
+            sessionId TEXT,
+            status TEXT
           )
         ''');
       },

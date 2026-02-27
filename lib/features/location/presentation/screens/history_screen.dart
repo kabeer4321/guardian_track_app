@@ -39,7 +39,6 @@ class HistoryScreen extends StatelessWidget {
               );
             }
 
-            /// 🔹 GROUP BY SESSION
             final grouped = <String, List<LocationEntity>>{};
 
             for (var loc in state.locations) {
@@ -80,7 +79,6 @@ class HistoryScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
-                      /// 🔹 SESSION HEADER
                       _buildRow(
                         "Session Date",
                         DateFormatter.formatDate(start),
@@ -100,7 +98,6 @@ class HistoryScreen extends StatelessWidget {
 
                       const Divider(height: 20),
 
-                      /// 🔹 LOCATIONS INSIDE SESSION
                       ListView.builder(
                         itemCount: sessionLocations.length,
                         shrinkWrap: true,
@@ -114,15 +111,16 @@ class HistoryScreen extends StatelessWidget {
                             children: [
                               _buildRow(
                                   "Latitude",
-                                  loc.lat.toString()),
+                                  loc.lat),
                               const SizedBox(height: 4),
                               _buildRow(
                                   "Longitude",
-                                  loc.lng.toString()),
+                                  loc.lng),
                               const SizedBox(height: 4),
                               _buildRow(
                                   "Time",
                                   DateFormatter.formatTime(loc.time)),
+                              _buildRow("Status", loc.status),
                               const Divider(height: 20),
                             ],
                           );

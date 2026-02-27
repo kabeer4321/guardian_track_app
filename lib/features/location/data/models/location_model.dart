@@ -6,6 +6,7 @@ class LocationModel extends LocationEntity {
     required super.lng,
     required super.time,
     required super.sessionId,
+    required super.status,
   });
 
   Map<String, dynamic> toMap() {
@@ -14,6 +15,7 @@ class LocationModel extends LocationEntity {
       'lng': lng,
       'time': time.toIso8601String(),
       'sessionId': sessionId,
+      'status': status,
     };
   }
 
@@ -23,6 +25,7 @@ class LocationModel extends LocationEntity {
       lng: map['lng'],
       time: DateTime.parse(map['time']),
       sessionId: map['sessionId'],
+      status: map['status'],
     );
   }
 }
